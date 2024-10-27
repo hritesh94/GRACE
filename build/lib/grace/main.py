@@ -26,20 +26,7 @@ def run(config: DictConfig):
     np.random.seed(42)
     
     if config.wandb:
-         # Simplified config to pass to WandB
-        simple_config = {
-            "batch_size": config.batch_size,
-            "n_iter": config.n_iter,
-            "max_n_edits": config.max_n_edits,
-            "device": config.device,
-            "dropout": config.dropout,
-            "editor": config.editor._name,
-            "experiment_task": config.experiment.task,
-            "model": config.model.name
-        }
-        
-        # Initialize WandB with the simplified config
-        wandb.init(project=config.wandb_project_name, config=simple_config, mode=config.wandb_mode)
+        wandb.init(project=config.wandb_project_name, config=config, mode=config.wandb_mode)
         if not config.wandb_run_name:
             # If no specific run name is provided, try using the SLURM_JOBID. This only works if using SLURM, otherwise it'll just use default
             try:
@@ -229,7 +216,7 @@ def run(config: DictConfig):
 
     ### --- save final edited model ---
     if config.ckpt:
-        os.makedirs(os.path.join(ckpt_dir, wandb.run.name), exist_ok=True)
+        os.makedirs(os.path.join(ckpt_dir(), wandb.run.name), exist_ok=True)
         OmegaConf.save(config, os.path.join(ckpt_dir, "config.yaml"))
         torch.save(editor.model.state_dict(), os.path.join(ckpt_dir, "model.pt"))
 
